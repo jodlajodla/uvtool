@@ -333,7 +333,8 @@ def get_base_image(filters):
 
 def create(hostname, filters, user_data_fobj, meta_data_fobj, memory=512,
            cpu=1, disk=2, unsafe_caching=False, template_path=DEFAULT_TEMPLATE,
-           log_console_output=False, bridge=None, backing_image_file=None):
+           log_console_output=False, bridge=None, backing_image_file=None,
+           start=True):
     if backing_image_file is None:
         base_volume_name = get_base_image(filters)
     undo_volume_creation = []
@@ -368,11 +369,12 @@ def create(hostname, filters, user_data_fobj, meta_data_fobj, memory=512,
         )
         conn = libvirt.open('qemu:///system')
         domain = conn.defineXML(xml)
-        try:
-            domain.create()
-        except:
-            domain.undefine()
-            raise
+        if start:
+            try:
+                domain.create()
+            except:
+                domain.undefine()
+                raise
     except:
         for vol in undo_volume_creation:
             vol.delete(0)
@@ -539,6 +541,7 @@ def main_create(parser, args):
         memory=args.memory,
         template_path=args.template,
         unsafe_caching=args.unsafe_caching,
+        start=not args.no_start
     )
 
 
@@ -676,6 +679,7 @@ def main(args):
     create_subparser.add_argument('--run-script-once', action='append')
     create_subparser.add_argument('--ssh-public-key-file')
     create_subparser.add_argument('--packages', action='append')
+    create_subparser.add_argument('--no-start', action='store_true', default=False)
     create_subparser.add_argument('hostname')
     create_subparser.add_argument(
         'filters', nargs='*', metavar='filter',
