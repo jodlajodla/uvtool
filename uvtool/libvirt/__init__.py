@@ -20,7 +20,9 @@ from __future__ import unicode_literals
 
 import codecs
 import contextlib
+import errno
 import itertools
+import json
 import os
 import shutil
 import subprocess
@@ -31,6 +33,7 @@ from lxml import etree
 from lxml.builder import E
 
 LIBVIRT_DNSMASQ_LEASE_FILE = '/var/lib/libvirt/dnsmasq/default.leases'
+LIBVIRT_DNSMASQ_STATUS_FILE = '/var/lib/libvirt/dnsmasq/virbr0.status'
 
 
 def get_libvirt_pool_object(libvirt_conn, pool_name):
@@ -236,11 +239,50 @@ def get_domain_macs(domain_name, conn=None):
         yield mac.get('address')
 
 
-def mac_to_ip(mac):
-    canonical_mac = mac.lower()
-    with codecs.open(LIBVIRT_DNSMASQ_LEASE_FILE, 'r') as f:
+def dnsmasq_lease_file_mac_to_ip(lowercase_mac):
+    MAC_FIELD = 1
+    IP_FIELD = 2
+    MIN_FIELDS = max(MAC_FIELD, IP_FIELD)
+
+    try:
+        f = codecs.open(LIBVIRT_DNSMASQ_LEASE_FILE, 'r')
+    except IOError as e:
+        if e.errno == errno.ENOENT:
+            return None
+        else:
+            raise
+
+    with contextlib.closing(f):
         for line in f:
             fields = line.split()
-            if len(fields) > 1 and fields[1].lower() == canonical_mac:
-                return fields[2]
+            if (len(fields) >= MIN_FIELDS and
+                    fields[MAC_FIELD].lower() == lowercase_mac):
+                return fields[IP_FIELD]
         return None
+
+
+def libvirt_dnsmasq_status_file_mac_to_ip(lowercase_mac):
+    try:
+        f = codecs.open(LIBVIRT_DNSMASQ_STATUS_FILE , 'r')
+    except IOError as e:
+        if e.errno == errno.ENOENT:
+            return None
+        else:
+            raise
+
+    with contextlib.closing(f):
+        j = json.load(f)
+
+    for entry in j:
+        if entry.get('mac-address') == lowercase_mac:
+            return entry['ip-address']
+
+    return None
+
+
+def mac_to_ip(mac):
+    lowercase_mac = mac.lower()
+    return (
+        dnsmasq_lease_file_mac_to_ip(lowercase_mac) or
+        libvirt_dnsmasq_status_file_mac_to_ip(lowercase_mac)
+    )

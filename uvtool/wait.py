@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 import argparse
 import contextlib
 import functools
+import os
 import socket
 import sys
 import time
@@ -27,6 +28,10 @@ import time
 import pyinotify
 
 import uvtool.libvirt
+from uvtool.libvirt import (
+    LIBVIRT_DNSMASQ_LEASE_FILE,
+    LIBVIRT_DNSMASQ_STATUS_FILE
+)
 
 SSH_PORT = 22
 
@@ -37,8 +42,9 @@ class LeaseModifyWaiter(object):
         self.notifier = pyinotify.Notifier(self.wm, pyinotify.ProcessEvent())
 
     def start_watching(self):
-        self.wdd = self.wm.add_watch(
-            uvtool.libvirt.LIBVIRT_DNSMASQ_LEASE_FILE, pyinotify.IN_MODIFY)
+        for f in [LIBVIRT_DNSMASQ_LEASE_FILE, LIBVIRT_DNSMASQ_STATUS_FILE]:
+            if os.path.exists(f):
+                self.wm.add_watch(f, pyinotify.IN_MODIFY)
 
     def wait(self, timeout):
         if self.notifier.check_events(timeout=(timeout*1000)):
