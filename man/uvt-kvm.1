@@ -115,6 +115,9 @@ is assumed, where
 corresponds to the current LTS release as returned by
 .BR distro-info (1).
 
+Alternatively, see \fB--backing-image-file\fR under ADVANCED OVERRIDE OPTIONS
+below to supply a backing image directly yourself.
+
 This subcommand supports an extensive set of options to modify the
 definition and behavior of the VM. See LIBVIRT DOMAIN DEFINTION OPTIONS,
 CLOUD-INIT CONFIGURATION OPTIONS and ADVANCED OVERRIDE OPTIONS below.
@@ -456,6 +459,12 @@ This does not override any other options, since cloud-init metadata is
 not otherwise tunable.
 
 Default: minimal file with automatically generated instance-id.
+
+.TP
+.BI --backing-image-file\  image_file
+Specify the name of a local file that will be used to create the VM instead of
+relying on the volume storage pool. It must point to a qcow2 formatted file.
+This option overrides any simplestreams filters provided.
 
 .SH ADVANCED USAGE
 
