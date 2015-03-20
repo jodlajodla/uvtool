@@ -463,7 +463,13 @@ def name_to_ips(name):
 def ssh(name, login_name, arguments, stdin=None, checked=False, sysexit=True,
         private_key_file=None):
     ips = name_to_ips(name)
-    if len(ips) > 1:
+    ip_count = len(ips)
+    if not ip_count:
+        raise CLIError(
+            "no IP address found for libvirt machine %s. "
+            "Has it had time to boot yet?\nTry: %s wait" %
+                (repr(name), sys.argv[0]))
+    elif ip_count > 1:
         raise CLIError(
             "multiple IPs detected for %s %s and are not supported." %
                 (repr(name), repr(ips))
