@@ -271,7 +271,10 @@ def libvirt_dnsmasq_status_file_mac_to_ip(lowercase_mac):
             raise
 
     with contextlib.closing(f):
-        j = json.load(f)
+        try:
+            j = json.load(f)
+        except ValueError:
+            return None
 
     for entry in j:
         if entry.get('mac-address') == lowercase_mac:
