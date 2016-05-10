@@ -199,7 +199,7 @@ def create_ds_image(temp_dir, hostname, user_data_fobj, meta_data_fobj):
         f.write(meta_data_fobj.read())
 
     subprocess.check_call(
-        ['cloud-localds', 'ds.img', 'userdata', 'metadata'], cwd=temp_dir)
+        ['cloud-localds', '--disk-format=qcow2', 'ds.img', 'userdata', 'metadata'], cwd=temp_dir)
 
 
 def create_ds_volume(new_volume_name, hostname, user_data_fobj, meta_data_fobj):
@@ -210,7 +210,7 @@ def create_ds_volume(new_volume_name, hostname, user_data_fobj, meta_data_fobj):
         create_ds_image(temp_dir, hostname, user_data_fobj, meta_data_fobj)
         with open(os.path.join(temp_dir, 'ds.img'), 'rb') as f:
             return uvtool.libvirt.create_volume_from_fobj(
-                new_volume_name, f, pool_name=POOL_NAME)
+                new_volume_name, f, image_type='qcow2', pool_name=POOL_NAME)
     finally:
         shutil.rmtree(temp_dir)
 
