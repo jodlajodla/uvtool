@@ -120,7 +120,15 @@ below to supply a backing image directly yourself.
 
 This subcommand supports an extensive set of options to modify the
 definition and behavior of the VM. See LIBVIRT DOMAIN DEFINTION OPTIONS,
-CLOUD-INIT CONFIGURATION OPTIONS and ADVANCED OVERRIDE OPTIONS below.
+CLOUD-INIT CONFIGURATION OPTIONS and ADVANCED OVERRIDE OPTIONS below. Other
+general behavioural options:
+
+.TP
+.B --no-start
+Do not start the VM after creation. This is useful to make further
+customisations to the VM before using it. To start the VM when done, use
+.B virsh\ start
+.IR name .
 
 .SS wait
 .SY uvt-kvm\ wait
