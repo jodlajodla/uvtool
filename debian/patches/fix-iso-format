@@ -1,0 +1,17 @@
+Bug-Ubuntu: https://launchpad.net/bugs/1372368
+Author: Serge Hallyn <serge.hallyn@ubuntu.com>
+Last-Update: 2014-09-25
+
+Index: uvtool-0~bzr92/uvtool/libvirt/kvm.py
+===================================================================
+--- uvtool-0~bzr92.orig/uvtool/libvirt/kvm.py
++++ uvtool-0~bzr92/uvtool/libvirt/kvm.py
+@@ -284,6 +284,8 @@ def compose_domain_xml(name, volumes, cp
+             find('format').
+             get('type')
+             )
++        if disk_format_type == "iso":
++            disk_format_type = "raw"
+         if unsafe_caching:
+             disk_driver = E.driver(
+                 name='qemu', type=disk_format_type, cache='unsafe')
