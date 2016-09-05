@@ -1,6 +1,0 @@
-uvtool (0~~) UNRELEASED; urgency=low
-
-  * Template changelog for daily builds.
-  * Replace with distribution changelog for distribution builds.
-
- -- Robie Basak <robie.basak@ubuntu.com>  Tue, 29 Oct 2013 16:28:04 +0000
