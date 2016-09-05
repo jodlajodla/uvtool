@@ -1,6 +1,115 @@
-uvtool (0~~) UNRELEASED; urgency=low
+uvtool (0~bzr99-0ubuntu1) vivid; urgency=medium
 
-  * Template changelog for daily builds.
-  * Replace with distribution changelog for distribution builds.
+  * New upstream snapshot (bugfixes only):
+    - Also use libvirt's virbr0.status for IP scan (LP: #1428674).
+    - Fix wait when guest is systemd.
+    - Document --backing-image-file in the manpage (LP: #1317266).
+      Thanks to Louis Bouchard.
+    - Do not recommend libnss-mdns (LP: #1357400).
+    - Fix --user-data typo in manpage (LP: #1401749). Thanks to David
+      Medberry.
+    - ssh: fix error message when guest is not ready (LP: #1303877).
 
- -- Robie Basak <robie.basak@ubuntu.com>  Tue, 29 Oct 2013 16:28:04 +0000
+ -- Robie Basak <robie.basak@ubuntu.com>  Mon, 13 Apr 2015 17:41:34 +0100
+
+uvtool (0~bzr92-0ubuntu2) utopic; urgency=medium
+
+  * With libvirt 1.2.8, the second disk is being reported as type iso,
+    which confuses libvirt. As a temporary workaround, intercept that and call
+    it raw. Thanks to Serge Hallyn and Stefan Bader for the patch (LP:
+    #1372368).
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Thu, 25 Sep 2014 10:45:32 +0000
+
+uvtool (0~bzr92-0ubuntu1) trusty; urgency=low
+
+  * New upstream snapshot (bugfixes only):
+    - Fix manpage to reflect correct "create" default.
+    - Correctly handle wait with custom ssh keys (LP: #1287140).
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Tue, 01 Apr 2014 13:07:55 +0100
+
+uvtool (0~bzr90-0ubuntu1) trusty; urgency=low
+
+  * New upstream snapshot (no new features):
+    - Add missing copyright and licence notices.
+    - Correctly print missing ssh key path when not found.
+    - Add manpages.
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Wed, 12 Mar 2014 11:20:53 +0000
+
+uvtool (0~bzr87-0ubuntu1) trusty; urgency=low
+
+  * New upstream snapshot:
+    - Suppress spurious terminal output from libvirt API (LP: #1228231).
+    - Add --packages option, drop avahi-daemon default.
+    - Fail wait if the libvirt domain is not running.
+    - Remote wait support (LP: #1245733).
+    - Skip some tests when backported to Ubuntu Precise.
+    - Do not cause backtraces on some standard errors (LP: #1245641).
+    - Add standard Intel architecture features (LP: #1256658).
+    - Default to an ssh key from an agent if available.
+    - Add support for --meta-data passing.
+    - Default to 'ubuntu' login name for ssh (LP: #1280588).
+    - Add yaml and pyinotify build dependencies.
+    - Test for ssh parameter handling.
+    - purge: explicitly specify flags for compatibility (LP: #1248389).
+    - Drop "uvt-kvm import".
+    - Drop experimental CLI warnings.
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Wed, 19 Feb 2014 22:26:29 +0000
+
+uvtool (0~bzr68-0ubuntu1) trusty; urgency=low
+
+  * New upstream snapshot:
+    - Delete the created volume if the stream write fails.
+    - Handle new "virsh -q pool-list" format.
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Thu, 23 Jan 2014 17:32:25 +0000
+
+uvtool (0~bzr66-0ubuntu1) trusty; urgency=low
+
+  * New upstream snapshot:
+    - New subcommands: ip, ssh and wait.
+    - Warn about unimplemented boot-finished wait.
+    - Add required dependency python-yaml (LP: #1242383).
+    - New uvt-kvm create options: --run-script-once and --ssh-public-key-file.
+    - New dependency on python-pyinotify.
+    - Diagnose libvirtd failure on postinst failure.
+    - Don't drop model=virtio when specifying bridge.
+    - Fix 'TypeError: not all arguments converted during string formatting'
+      error.
+    - New uvt-simplestreams-libvirt option: --no-authentication.
+    - Do not remove old volumes immediately after sync (LP: #1251296).
+    - Add simplestreams sync tests.
+    - More human-readable "query" command output.
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Thu, 12 Dec 2013 12:08:47 +0000
+
+uvtool (0~bzr42-0ubuntu1) saucy; urgency=low
+
+  New upstream snapshot:
+    - Add --disk option and default to 8G (LP: #1234830).
+    - Use a constant for the volume pool name.
+    - Add --backing-image-file option.
+    - Add experimental CLI notice.
+    - Depend on cloud-image-utils >= 0.27 (LP: #1236724).
+    - Add purge subcommand to uvt-simplestreams-libvirt (LP: #1234824).
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Tue, 08 Oct 2013 16:53:09 +0100
+
+uvtool (0~bzr36-0ubuntu1) saucy; urgency=low
+
+  * New upstream snapshot:
+    - Workaround to make sure that libvirtd is running and ready before
+      attempting to create the volume pool (LP: #1228210).
+      + d/uvtool-libvirt-postinst: wait logic.
+      + d/control: add dependency on socat (used by the wait logic).
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Wed, 02 Oct 2013 11:35:06 +0100
+
+uvtool (0~bzr35-0ubuntu1) saucy; urgency=low
+
+  * Initial release (LP: #1218508).
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Fri, 20 Sep 2013 17:33:54 +0100
