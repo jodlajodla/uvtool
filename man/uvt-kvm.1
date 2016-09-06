@@ -193,8 +193,7 @@ into the guest system as this user for the remote wait mechanism to work.
 
 .TP
 .B --insecure
-Permit potentially insecure operations, which is currently required for
-the remote wait script to work. See COMMON OPTIONS, below.
+Permit potentially insecure operations. See COMMON OPTIONS, below.
 
 .TP
 .BI --ssh-private-key-file\  ssh_private_key_file
@@ -253,8 +252,7 @@ directly instead.
 
 .TP
 .B --insecure
-Permit potentially insecure operations, which is currently required for
-this subcommand to work. See COMMON OPTIONS, below.
+Permit potentially insecure operations. See COMMON OPTIONS, below.
 
 .TP
 .BI --login-name\  user
@@ -293,11 +291,10 @@ Valid for: \fBuvt-kvm\ wait\fR, \fBuvt-kvm\ ssh\fR.
 
 Permit connections which may not be secure. For
 .BR ssh (1)
-connections, this skips host key validation, since uvtool currently has
-no mechanism to securely acquire the ssh host key from a guest. In
-the common case, this should not be a problem since the guest system is
-located on the same system and this network path can be trusted.
-However,
+connections, this skips host key validation. This is no longer be required in the default case, since uvtool creates the guest's host keys, supplies them to the guest via cloud-init, and thus knows and sets the expected host public key automatically. In the common non-default case,
+.B --insecure
+may be required but still should not be a problem since the guest system is
+located on the same system and this network path can be trusted. However,
 .B uvt-kvm
 will refuse to make a connection (for
 .BR uvt-kvm\ ssh )
