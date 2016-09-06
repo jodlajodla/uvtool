@@ -558,15 +558,18 @@ is undefined.
 .EE
 
 Do you have permission to connect to libvirt? On Ubuntu, you must belong to the
-.B libvirtd
-group. Users with
+.B libvirt
+group (this group was named \fBlibvirtd\fR on 16.04 and earlier). Users with
 .BR sudo (8)
 access are added to this group by default, but users only get group membership
 on the next login after the
 .B libvirt-bin
 package has been installed. To temporarily add yourself to this group in
 advance of your next login, try
-.BR newgrp\ libvirtd .
+.B newgrp\ libvirt
+(or
+.B newgrp\ libvirtd
+if on Ubuntu 16.04 or earlier).
 
 .EX
 .B no supported architecture for os type 'hvm'
