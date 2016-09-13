@@ -42,7 +42,18 @@ if [ "$1" = configure ]; then
 	mkdir -p /var/lib/uvtool/libvirt/images
 	if [ ! -e /var/lib/uvtool/libvirt/metadata ]; then
 		mkdir -pm775 /var/lib/uvtool/libvirt/metadata
-		chown root.libvirtd /var/lib/uvtool/libvirt/metadata
+		# Since Ubuntu 16.10, libvirt packaging uses the libvirt group,
+		# not the libvirtd group. For ease of backporting, support
+		# both. We can drop this conditional code and hardcode the
+		# libvirt group again after Ubuntu 16.04 is EOL.
+		if getent group libvirt >/dev/null; then
+			chown root.libvirt /var/lib/uvtool/libvirt/metadata
+		elif getent group libvirtd >/dev/null; then
+			chown root.libvirtd /var/lib/uvtool/libvirt/metadata
+		else
+			echo "Cannot find libvirt or libvirtd groups; failed to set permissions on /var/lib/uvtool/libvirt/metadata" >&2
+			exit 1
+		fi
 	fi
 	# Make sure that libvirtd is ready. This is a workaround for LP: #1228210.
 	socat UNIX-CONNECT:/var/run/libvirt/libvirt-sock,retry=15 - < /dev/null
