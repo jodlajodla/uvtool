@@ -61,7 +61,7 @@ class TestSimpleStreams(unittest.TestCase):
         # least once by uvtool.libvirt.simplestreams directly. This is more of
         # an assertion about the test being correct than part of the test
         # itself.
-        libvirt.assert_has_calls(mock.call.open(u'qemu:///system'))
+        libvirt.assert_has_calls([mock.call.open(u'qemu:///system')])
 
         # create_volume_from_fobj should have been called exactly once to
         # create the volume with the name that we expect
