@@ -36,23 +36,61 @@ from uvtool.libvirt import (
 SSH_PORT = 22
 
 
+class ProcessEvent(pyinotify.ProcessEvent):
+    def _uvtool_process_generic(self, event):
+        if event.pathname in self._uvtool_watch_files:
+            self._uvtool_modified = True
+
+    process_IN_MODIFY = _uvtool_process_generic
+    process_IN_MOVED_TO = _uvtool_process_generic
+
+
 class LeaseModifyWaiter(object):
-    def __init__(self):
+    def __init__(self, watch_files=None):
+        if watch_files is None:
+            self.watch_files = frozenset([
+                LIBVIRT_DNSMASQ_LEASE_FILE,
+                LIBVIRT_DNSMASQ_STATUS_FILE,
+            ])
+        else:
+            self.watch_files = watch_files
+
         self.wm = pyinotify.WatchManager()
-        self.notifier = pyinotify.Notifier(self.wm, pyinotify.ProcessEvent())
+        self.process_event = ProcessEvent()
+        # API-by-inheritence: must avoid namespace collision, and told
+        # by upstream not to override __init__, so cannot provide parameters.
+        # So we initialise here. What a hack. This is why I consider
+        # API-by-inheritence in dynamic languages (where subclasses share the
+        # same attribute namespace) harmful.
+        self.process_event._uvtool_watch_files = self.watch_files
+        self.process_event._uvtool_modified = False
+        self.notifier = pyinotify.Notifier(self.wm, self.process_event)
+
 
     def start_watching(self):
-        for f in [LIBVIRT_DNSMASQ_LEASE_FILE, LIBVIRT_DNSMASQ_STATUS_FILE]:
+        watched_dirs = set()
+        for f in self.watch_files:
             if os.path.exists(f):
                 self.wm.add_watch(f, pyinotify.IN_MODIFY)
+            parent_path = os.path.dirname(f)
+            if parent_path not in watched_dirs:
+                self.wm.add_watch(parent_path, pyinotify.IN_MOVED_TO)
+                watched_dirs.add(parent_path)
 
     def wait(self, timeout):
-        if self.notifier.check_events(timeout=(timeout*1000)):
-            self.notifier.read_events()
-            self.notifier.process_events()
-            return True
-        else:
-            return False
+        # Should use CLOCK_MONOTONIC here, but it is only available since
+        # Python 3.3.
+        deadline = time.time() + timeout
+
+        remaining_time = deadline - time.time()
+        while remaining_time > 0:
+            if self.notifier.check_events(timeout=(remaining_time*1000)):
+                self.notifier.read_events()
+                self.notifier.process_events()
+                if self.process_event._uvtool_modified:
+                    return True
+            remaining_time = deadline - time.time()
+        return False
 
     def close(self):
         self.wm.close()
