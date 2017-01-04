@@ -1,0 +1,11 @@
+Here are some pieces contributed by others that haven't made it into uvtool
+proper yet. They may change or disappear between releases.
+
+Additional architecture support:
+
+arch/arm64.xml - contributed by Ali in LP: #1349854
+arch/ppc64el.xml - contributed by Christian Ehrhardt in LP: #1573820
+
+Others:
+
+ussh/ - contributed by Scott Moser in https://gist.github.com/smoser/88a5a77ab0debf268b945d46314ea447
