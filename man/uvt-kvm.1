@@ -344,6 +344,10 @@ Amount of system RAM in megabytes. Default: 512 (MiB).
 Size of the OS disk in gigabytes. Default: 8 (GiB).
 
 .TP
+.BI --ephemeral-disk\  size
+Add an ephemeral disk of Size gigabytes.
+
+.TP
 .B --unsafe-caching
 Do not flush guest syncs to the host on the OS disk. This can improve
 guest I/O performance at the cost of losing data on host power failure.
