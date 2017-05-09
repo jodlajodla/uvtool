@@ -1,3 +1,32 @@
+uvtool (0~git122-0ubuntu1) artful; urgency=medium
+
+  * New upstream snapshot:
+    - Treat invalid JSON in virbr0.status as no data.
+    - Ensure ds image is in qcow2 format. This allows virsh snapshotting to
+      work out of the box. Thanks to Chris Arges.
+    - Add a --no-start option to not start the KVM when specified. Thanks to
+      Tycho Andersen.
+    - Generate ssh keys on host side.
+    - Store ssh host keys in libvirt domain xml.
+    - Use the guest's ssh public host key when available. Now --insecure is no
+      longer needed in the common case.
+    - Pull in d/p/fix-iso-format from the Ubuntu archive.
+    - Fix dnsmasq lease inotify watcher.
+    - Add contrib/ section. Thanks to Mike Pontillo, Ali, Christian Ehrhardt,
+      Scott Moser and others.
+    - Add --ephemeral-disk option. Thanks to Scott Moser.
+    - uvt-simplestreams-libvirt sync query: do not print empty line on zero
+      images.
+  * Packaging changes:
+    - d/p/0001-Fix-assert_has_calls-use-in-test.patch: drop (now upstream).
+    - debian/uvtool-libvirt.postinst: augment the change made in
+      0~bzr99-0ubuntu2 to support both the libvirt and libvirtd group name
+      cases for easier backporting.
+    - debian/uvtool-libvirt.pyinstall: add uvtool/ssh.py.
+    - debian/uvtool.docs: install contrib/ section.
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Tue, 09 May 2017 17:39:26 +0100
+
 uvtool (0~bzr99-0ubuntu2) yakkety; urgency=medium
 
   * d/uvtool-libvirt.postinst: use the libvirt group as the libvirt-bin
