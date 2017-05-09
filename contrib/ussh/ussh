@@ -1,0 +1,22 @@
+#!/bin/bash
+host="$1"
+shift
+sshcmd=( uvt-kvm ssh --insecure -- )
+set -- $host -- "$@"
+remcmd=( )
+seen=false
+for x in "$@"; do
+   ! $seen && [ "$x" = "--" ] && seen=true && continue
+   $seen && remcmd[${#remcmd[@]}]="$x" || sshcmd[${#sshcmd[@]}]="$x"
+done
+
+if [ "${#remcmd[@]}" = 0 ]; then
+   sshcmd[${#sshcmd[@]}]="-t"
+   remcmd=( ${SHELL:-"/bin/bash"} )
+fi
+
+stuffed=$(getopt --shell sh --options "" -- -- "${remcmd[@]}")
+stuffed=${stuffed# -- }
+b64=$(printf "%s\n" "$stuffed" | base64 --wrap=0)
+exec "${sshcmd[@]}" \
+   'eval set -- "$(echo '$b64' | base64 --decode)" && exec "$@"'

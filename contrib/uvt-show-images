@@ -1,0 +1,9 @@
+#!/bin/bash
+
+UVTOOL_POOL=/var/lib/uvtool/libvirt/images
+
+for FILE in `ls -rt1 $UVTOOL_POOL`; do
+    printf '%s %s\n' \
+        "$(du -sh $UVTOOL_POOL/$FILE)" \
+        "$(echo $FILE | sed 's/x-uvt-b64-//' | base64 -d | tr ' ' '_')";
+done

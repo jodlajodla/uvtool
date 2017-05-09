@@ -279,7 +279,10 @@ def libvirt_pool_name_to_useful_description_string(libvirt_pool_name):
 def main_query(args):
     result = query(args.filters)
     useful_result = sorted(libvirt_pool_name_to_useful_description_string(r) for r in result)
-    print(*useful_result, sep="\n")
+    if useful_result:
+        # Only print if we have results; otherwise this will print an unwanted
+        # blank line
+        print(*useful_result, sep="\n")
 
 
 def main_purge(args):

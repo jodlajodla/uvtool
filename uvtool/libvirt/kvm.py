@@ -29,6 +29,7 @@ import itertools
 import os
 import shutil
 import signal
+import string
 import StringIO
 import subprocess
 import sys
@@ -228,6 +229,21 @@ def create_ds_volume(new_volume_name, hostname, user_data_fobj, meta_data_fobj):
         shutil.rmtree(temp_dir)
 
 
+def create_new_volume(new_volume_name, size=2):
+    """Create a new libvirt volume with provided name and size."""
+
+    temp_dir = tempfile.mkdtemp(prefix='uvt-kvm-')
+    try:
+        fname = os.path.join(temp_dir, 'disk.qcow')
+        output = subprocess.check_output(
+            ['qemu-img', 'create', '-f', 'qcow2', fname, "%dG" % size])
+        with open(fname, 'rb') as f:
+            return uvtool.libvirt.create_volume_from_fobj(
+                new_volume_name, f, image_type='qcow2', pool_name=POOL_NAME)
+    finally:
+        shutil.rmtree(temp_dir)
+
+
 def create_cow_volume(backing_volume_name, new_volume_name, new_volume_size,
         conn=None):
 
@@ -291,7 +307,8 @@ def compose_domain_xml(name, volumes, cpu=1, memory=512, unsafe_caching=False,
     devices = domain.find('devices')
 
     etree.strip_elements(devices, 'disk')
-    for disk_device, vol in zip(['vda', 'vdb'], volumes):
+    for num, vol in enumerate(volumes):
+        disk_device = "vd%s" % string.ascii_letters[num]
         disk_format_type = (
             etree.fromstring(vol.XMLDesc(0)).
             find('target').
@@ -359,9 +376,11 @@ def get_base_image(filters):
 def create(hostname, filters, user_data_fobj, meta_data_fobj, memory=512,
            cpu=1, disk=2, unsafe_caching=False, template_path=DEFAULT_TEMPLATE,
            log_console_output=False, bridge=None, backing_image_file=None,
-           start=True, ssh_known_hosts=None):
+           start=True, ssh_known_hosts=None, ephemeral_disks=None):
     if backing_image_file is None:
         base_volume_name = get_base_image(filters)
+    if ephemeral_disks is None:
+        ephemeral_disks = []
     undo_volume_creation = []
     try:
         # cow image names must end in ".qcow" so that the current Apparmor
@@ -383,8 +402,15 @@ def create(hostname, filters, user_data_fobj, meta_data_fobj, memory=512,
             "%s-ds.qcow" % hostname, hostname, user_data_fobj, meta_data_fobj)
         undo_volume_creation.append(ds_vol)
 
+        volumes = [main_vol, ds_vol]
+        for num, ephem_size in enumerate(ephemeral_disks):
+            vol = create_new_volume(
+                "%s-ephem-%02d.qcow" % (hostname, num), ephem_size)
+            undo_volume_creation.append(vol)
+            volumes.append(vol)
+
         xml = compose_domain_xml(
-            hostname, [main_vol, ds_vol],
+            hostname, volumes=volumes,
             bridge=bridge,
             cpu=cpu,
             log_console_output=log_console_output,
@@ -597,6 +623,7 @@ def main_create(parser, args):
         unsafe_caching=args.unsafe_caching,
         start=not args.no_start,
         ssh_known_hosts=ssh_known_hosts,
+        ephemeral_disks=args.ephemeral_disks,
     )
 
 
@@ -723,6 +750,9 @@ def main(args):
     create_subparser.add_argument('--memory', default=512, type=int)
     create_subparser.add_argument('--cpu', default=1, type=int)
     create_subparser.add_argument('--disk', default=8, type=int)
+    create_subparser.add_argument(
+        '--ephemeral-disk', action='append', type=int, dest='ephemeral_disks',
+        help='Add an empty disk of SIZE in GB', metavar='SIZE')
     create_subparser.add_argument('--bridge')
     create_subparser.add_argument('--unsafe-caching', action='store_true')
     create_subparser.add_argument(
