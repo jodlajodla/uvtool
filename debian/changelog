@@ -1,3 +1,9 @@
+uvtool (0~git122-0ubuntu2) artful; urgency=medium
+
+  * Update Dependencies to match new libvirt package names (LP: #1694159)
+
+ -- Christian Ehrhardt <christian.ehrhardt@canonical.com>  Tue, 30 May 2017 10:29:14 +0200
+
 uvtool (0~git122-0ubuntu1) artful; urgency=medium
 
   * New upstream snapshot:
