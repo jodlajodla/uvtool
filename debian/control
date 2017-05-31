@@ -28,8 +28,8 @@ Description: Library and tools for using Ubuntu Cloud images
 
 Package: uvtool-libvirt
 Architecture: all
-Depends: libvirt-daemon-system,
-         libvirt-clients,
+Depends: libvirt-daemon-system | libvirt-bin,
+         libvirt-clients | libvirt-bin,
          python-libvirt,
          python-simplestreams,
          python-lxml,
