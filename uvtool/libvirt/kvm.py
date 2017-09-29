@@ -358,14 +358,20 @@ def compose_domain_xml(name, volumes, template_path, cpu=1, memory=512,
                       )
 
     if log_console_output:
-        print(
-            "Warning: logging guest console output introduces a DoS " +
+        if ARCH == 's390x':
+            print(
+                "Warning: disable logging guest console output as it is" +
+                " currently not supported on s390x.",
+                file=sys.stderr)
+        else:
+            print(
+                "Warning: logging guest console output introduces a DoS " +
                 "security problem on the host and should not be used in " +
                 "production.",
-            file=sys.stderr
-        )
-        etree.strip_elements(devices, 'serial')
-        devices.append(E.serial(E.target(port='0'), type='stdio'))
+                file=sys.stderr
+            )
+            etree.strip_elements(devices, 'serial')
+            devices.append(E.serial(E.target(port='0'), type='stdio'))
 
     if ssh_known_hosts:
         metadata = domain.find('metadata')
