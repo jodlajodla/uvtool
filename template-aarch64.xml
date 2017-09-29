@@ -18,8 +18,9 @@
       <source network='default'/>
       <model type='virtio'/>
     </interface>
-    <console type='pty'>
-      <target type='serial' port='0'/>
-    </console>
+    <serial type='pty'>
+      <source path='/dev/pts/3'/>
+      <target port='0'/>
+    </serial>
   </devices>
 </domain>
