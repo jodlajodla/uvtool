@@ -27,6 +27,7 @@ import errno
 import functools
 import itertools
 import os
+import platform
 import shutil
 import signal
 import string
@@ -47,7 +48,10 @@ import uvtool.libvirt.simplestreams
 import uvtool.ssh
 import uvtool.wait
 
+
+ARCH = platform.machine()
 DEFAULT_TEMPLATE = '/usr/share/uvtool/libvirt/template.xml'
+
 DEFAULT_REMOTE_WAIT_SCRIPT = '/usr/share/uvtool/libvirt/remote-wait.sh'
 POOL_NAME = 'uvtool'
 
@@ -61,6 +65,21 @@ class InsecureError(RuntimeError):
     """An insecure operation is required and the user did not permit it by
     using --insecure."""
     pass
+
+
+def set_arch_defaults(arch):
+    if arch == 'aarch64':
+        return '/usr/share/uvtool/libvirt/template-aarch64.xml'
+    elif arch == 'ppc64le':
+        return '/usr/share/uvtool/libvirt/template-ppc64le.xml'
+    elif arch == 's390x':
+        return '/usr/share/uvtool/libvirt/template-s390x.xml'
+    elif arch == 'x86_64' or arch == 'i686':
+        return DEFAULT_TEMPLATE
+    else:
+        print("Warning: unknown architecture '%s' using defaults" % arch,
+              file=sys.stderr)
+        return DEFAULT_TEMPLATE
 
 
 # From: http://www.chiark.greenend.org.uk/ucgi/~cjwatson/blosxom/2009-07-02-python-sigpipe.html
@@ -285,8 +304,8 @@ def create_cow_volume_by_path(backing_volume_path, new_volume_name,
     return pool.createXML(etree.tostring(new_vol), 0)
 
 
-def compose_domain_xml(name, volumes, cpu=1, memory=512, unsafe_caching=False,
-        template_path=DEFAULT_TEMPLATE, log_console_output=False, bridge=None,
+def compose_domain_xml(name, volumes, template_path, cpu=1, memory=512,
+        unsafe_caching=False, log_console_output=False, bridge=None,
         ssh_known_hosts=None):
     tree = etree.parse(template_path)
     domain = tree.getroot()
@@ -373,8 +392,8 @@ def get_base_image(filters):
     return result[0]
 
 
-def create(hostname, filters, user_data_fobj, meta_data_fobj, memory=512,
-           cpu=1, disk=2, unsafe_caching=False, template_path=DEFAULT_TEMPLATE,
+def create(hostname, filters, user_data_fobj, meta_data_fobj, template_path,
+           memory=512, cpu=1, disk=2, unsafe_caching=False,
            log_console_output=False, bridge=None, backing_image_file=None,
            start=True, ssh_known_hosts=None, ephemeral_disks=None):
     if backing_image_file is None:
@@ -607,6 +626,14 @@ def main_create(parser, args):
     meta_data_fobj = apply_default_fobj(
         args, 'meta_data', create_default_meta_data
     )
+
+    template = set_arch_defaults(ARCH)
+    if args.guest_arch:
+        template = set_arch_defaults(args.guest_arch)
+    # an explicit template overrides general and guest-arch defaults
+    if args.template:
+        template = args.template
+
     if args.backing_image_file:
         abs_image_backing_file = os.path.abspath(args.backing_image_file)
     else:
@@ -619,7 +646,7 @@ def main_create(parser, args):
         disk=args.disk,
         log_console_output=args.log_console_output,
         memory=args.memory,
-        template_path=args.template,
+        template_path=template,
         unsafe_caching=args.unsafe_caching,
         start=not args.no_start,
         ssh_known_hosts=ssh_known_hosts,
@@ -746,7 +773,7 @@ def main(args):
     create_subparser.set_defaults(func=main_create)
     create_subparser.add_argument(
         '--developer', '-d', nargs=0, action=DeveloperOptionAction)
-    create_subparser.add_argument('--template', default=DEFAULT_TEMPLATE)
+    create_subparser.add_argument('--template', default=None)
     create_subparser.add_argument('--memory', default=512, type=int)
     create_subparser.add_argument('--cpu', default=1, type=int)
     create_subparser.add_argument('--disk', default=8, type=int)
@@ -760,6 +787,8 @@ def main(args):
     create_subparser.add_argument(
         '--meta-data', type=argparse.FileType('rb'))
     create_subparser.add_argument('--password')
+    create_subparser.add_argument('--guest-arch',
+        help='guest arch to select template, default is the host architecture')
     create_subparser.add_argument('--log-console-output', action='store_true')
     create_subparser.add_argument('--backing-image-file')
     create_subparser.add_argument('--run-script-once', action='append')
