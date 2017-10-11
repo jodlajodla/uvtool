@@ -455,6 +455,15 @@ Default:
 .IR /usr/share/uvtool/libvirt/template.xml .
 
 .TP
+.BI --guest-arch\  architecture
+Specify the architecture of the guest template file that will be selected.
+If an explicit \fB--template\fR is given then \fB--guest-arch\fR has no effect.
+If neither \fB--template\fR nor \fB--guest-arch\fR are set the hosts
+architecture will be used to determine the default xml template.
+
+Default: The architecture of the host system.
+
+.TP
 .BI --user-data\  user_data_file
 Override cloud-init userdata, instead using the file supplied. This
 overrides all options in the section CLOUD-INIT CONFIGURATION OPTIONS.
