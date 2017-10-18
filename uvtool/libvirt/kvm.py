@@ -51,6 +51,7 @@ import uvtool.wait
 
 ARCH = platform.machine()
 DEFAULT_TEMPLATE = '/usr/share/uvtool/libvirt/template.xml'
+UNDEF_FLAGS = 0
 
 DEFAULT_REMOTE_WAIT_SCRIPT = '/usr/share/uvtool/libvirt/remote-wait.sh'
 POOL_NAME = 'uvtool'
@@ -69,6 +70,8 @@ class InsecureError(RuntimeError):
 
 def set_arch_defaults(arch):
     if arch == 'aarch64':
+        global UNDEF_FLAGS
+        UNDEF_FLAGS = libvirt.VIR_DOMAIN_UNDEFINE_NVRAM
         return '/usr/share/uvtool/libvirt/template-aarch64.xml'
     elif arch == 'ppc64le':
         return '/usr/share/uvtool/libvirt/template-ppc64le.xml'
@@ -450,7 +453,7 @@ def create(hostname, filters, user_data_fobj, meta_data_fobj, template_path,
             try:
                 domain.create()
             except:
-                domain.undefine()
+                domain.undefineFlags(UNDEF_FLAGS)
                 raise
     except:
         for vol in undo_volume_creation:
@@ -488,7 +491,7 @@ def destroy(hostname):
 
     delete_domain_volumes(conn, domain)
 
-    domain.undefine()
+    domain.undefineFlags(UNDEF_FLAGS)
 
 
 def get_lts_series():
