@@ -359,10 +359,8 @@ def compose_domain_xml(name, volumes, template_path, cpu=1, memory=512,
 
     if log_console_output:
         if ARCH == 's390x':
-            print(
-                "Warning: disable logging guest console output as it is" +
-                " currently not supported on s390x.",
-                file=sys.stderr)
+            raise CLIError("logging guest console output is currently"
+                           "not supported on s390x.")
         else:
             print(
                 "Warning: logging guest console output introduces a DoS " +
