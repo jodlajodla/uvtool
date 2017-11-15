@@ -67,7 +67,7 @@ class InsecureError(RuntimeError):
     pass
 
 
-def set_arch_defaults(arch):
+def get_template_path(arch):
     if arch == 'aarch64':
         return '/usr/share/uvtool/libvirt/template-aarch64.xml'
     elif arch == 'ppc64le':
@@ -639,9 +639,9 @@ def main_create(parser, args):
         args, 'meta_data', create_default_meta_data
     )
 
-    template = set_arch_defaults(ARCH)
+    template = get_template_path(ARCH)
     if args.guest_arch:
-        template = set_arch_defaults(args.guest_arch)
+        template = get_template_path(args.guest_arch)
     # an explicit template overrides general and guest-arch defaults
     if args.template:
         template = args.template
