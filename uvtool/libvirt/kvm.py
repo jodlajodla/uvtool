@@ -449,7 +449,9 @@ def create(hostname, filters, user_data_fobj, meta_data_fobj, template_path,
                 domain.create()
             except:
                 if ARCH == 'aarch64':
-                    domain.undefineFlags(UNDEF_FLAGS)
+                    # aarch runs with nvram per our default template, flag
+                    # needed to be able to remove those on undefine
+                    domain.undefineFlags(libvirt.VIR_DOMAIN_UNDEFINE_NVRAM)
                 else:
                     domain.undefine()
                 raise
@@ -490,6 +492,8 @@ def destroy(hostname):
     delete_domain_volumes(conn, domain)
 
     if ARCH == 'aarch64':
+        # aarch runs with nvram per our default template, flag
+        # needed to be able to remove those on undefine
         domain.undefineFlags(libvirt.VIR_DOMAIN_UNDEFINE_NVRAM)
     else:
         domain.undefine()
