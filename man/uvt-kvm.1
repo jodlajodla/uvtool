@@ -372,6 +372,8 @@ This options enables retrospective examination of VM console output, but
 breaks
 .B virsh\ console
 for interactive use.
+On s390x this option is currently not supported due to incompatibilties with
+the sclp console used.
 
 .SH CLOUD-INIT CONFIGURATION OPTIONS
 
@@ -452,7 +454,16 @@ a new VM's definition. This is dynamically altered before domain
 creation; see LIBVIRT DOMAIN DEFINITION OPTIONS.
 
 Default:
-.IR /usr/share/uvtool/default.xml .
+.IR /usr/share/uvtool/libvirt/template.xml .
+
+.TP
+.BI --guest-arch\  architecture
+Specify the architecture of the guest template file that will be selected.
+If an explicit \fB--template\fR is given then \fB--guest-arch\fR has no effect.
+If neither \fB--template\fR nor \fB--guest-arch\fR are set the hosts
+architecture will be used to determine the default xml template.
+
+Default: The architecture of the host system.
 
 .TP
 .BI --user-data\  user_data_file
