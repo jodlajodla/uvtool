@@ -1,3 +1,11 @@
+uvtool (0~git136-0ubuntu1) bionic; urgency=medium
+
+  * New upstream snapshot: ship tested templates for some non-Intel
+    architectures and use them automatically when on those platforms.
+    Thanks to Christian Ehrhardt. LP: #1452016.
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Thu, 07 Dec 2017 10:26:51 +0000
+
 uvtool (0~git122-0ubuntu2) artful; urgency=medium
 
   * Update Dependencies to match new libvirt package names (LP: #1694159)
