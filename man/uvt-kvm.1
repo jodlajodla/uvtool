@@ -375,6 +375,12 @@ for interactive use.
 On s390x this option is currently not supported due to incompatibilties with
 the sclp console used.
 
+.TP
+.B --host-passthrough
+Instead of the default cpu model - which mostly is a compatibility focused
+lowest denominator of cpu features - use host-passthrough which will try to
+make all of the hosts cpu features available in the guest.
+
 .SH CLOUD-INIT CONFIGURATION OPTIONS
 
 Valid for: \fBuvt-kvm\ create\fR only.

@@ -305,8 +305,8 @@ def create_cow_volume_by_path(backing_volume_path, new_volume_name,
 
 
 def compose_domain_xml(name, volumes, template_path, cpu=1, memory=512,
-        unsafe_caching=False, log_console_output=False, bridge=None,
-        ssh_known_hosts=None):
+        unsafe_caching=False, log_console_output=False, host_passthrough=False,
+        bridge=None, ssh_known_hosts=None):
     tree = etree.parse(template_path)
     domain = tree.getroot()
     assert domain.tag == 'domain'
@@ -371,6 +371,13 @@ def compose_domain_xml(name, volumes, template_path, cpu=1, memory=512,
             etree.strip_elements(devices, 'serial')
             devices.append(E.serial(E.target(port='0'), type='stdio'))
 
+    if host_passthrough:
+        if ARCH == 'aarch64':
+            print("Info: on aarch64 a host type cpu is the default",
+                  file=sys.stderr)
+        else:
+            etree.SubElement(domain, 'cpu', mode='host-passthrough')
+
     if ssh_known_hosts:
         metadata = domain.find('metadata')
         if metadata is None:
@@ -398,8 +405,9 @@ def get_base_image(filters):
 
 def create(hostname, filters, user_data_fobj, meta_data_fobj, template_path,
            memory=512, cpu=1, disk=2, unsafe_caching=False,
-           log_console_output=False, bridge=None, backing_image_file=None,
-           start=True, ssh_known_hosts=None, ephemeral_disks=None):
+           log_console_output=False, host_passthrough=False, bridge=None,
+           backing_image_file=None, start=True, ssh_known_hosts=None,
+           ephemeral_disks=None):
     if backing_image_file is None:
         base_volume_name = get_base_image(filters)
     if ephemeral_disks is None:
@@ -437,6 +445,7 @@ def create(hostname, filters, user_data_fobj, meta_data_fobj, template_path,
             bridge=bridge,
             cpu=cpu,
             log_console_output=log_console_output,
+            host_passthrough=host_passthrough,
             memory=memory,
             template_path=template_path,
             unsafe_caching=unsafe_caching,
@@ -659,6 +668,7 @@ def main_create(parser, args):
         cpu=args.cpu,
         disk=args.disk,
         log_console_output=args.log_console_output,
+        host_passthrough=args.host_passthrough,
         memory=args.memory,
         template_path=template,
         unsafe_caching=args.unsafe_caching,
@@ -804,6 +814,7 @@ def main(args):
     create_subparser.add_argument('--guest-arch',
         help='guest arch to select template, default is the host architecture')
     create_subparser.add_argument('--log-console-output', action='store_true')
+    create_subparser.add_argument('--host-passthrough', action='store_true')
     create_subparser.add_argument('--backing-image-file')
     create_subparser.add_argument('--run-script-once', action='append')
     create_subparser.add_argument('--ssh-public-key-file')
