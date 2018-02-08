@@ -2,7 +2,7 @@
   <os>
     <type arch='aarch64' machine='virt'>hvm</type>
     <loader readonly='yes' type='pflash'>/usr/share/AAVMF/AAVMF_CODE.fd</loader>
-    <nvram template='/usr/share/AAVMF/AAVMF_CODE.fd'>/tmp/AAVMF_CODE.fd</nvram>
+    <nvram template='/usr/share/AAVMF/AAVMF_CODE.fd'/>
     <boot dev='hd'/>
   </os>
   <features>
