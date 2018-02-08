@@ -3,11 +3,6 @@
     <type>hvm</type>
     <boot dev='hd'/>
   </os>
-  <features>
-    <acpi/>
-    <apic/>
-    <pae/>
-  </features>
   <devices>
     <interface type='network'>
       <source network='default'/>
