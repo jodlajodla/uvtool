@@ -1,3 +1,12 @@
+uvtool (0~git140-0ubuntu1) bionic; urgency=medium
+
+  [ Christian Ehrhardt ]
+  * Drop non supported cpu features on s390x.
+  * Add --host-passthrough option.
+  * Fix arm template nvram path.
+
+ -- Robie Basak <robie.basak@ubuntu.com>  Thu, 08 Feb 2018 12:42:21 +0000
+
 uvtool (0~git136-0ubuntu1) bionic; urgency=medium
 
   * New upstream snapshot: ship tested templates for some non-Intel
