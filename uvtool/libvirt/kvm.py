@@ -235,7 +235,8 @@ def create_ds_image(temp_dir, hostname, user_data_fobj, meta_data_fobj):
         ['cloud-localds', '--disk-format=qcow2', 'ds.img', 'userdata', 'metadata'], cwd=temp_dir)
 
 
-def create_ds_volume(new_volume_name, hostname, user_data_fobj, meta_data_fobj):
+def create_ds_volume(new_volume_name, hostname, user_data_fobj, meta_data_fobj,
+        pool_name=POOL_NAME):
     """Create a new libvirt cloud-init datasource volume."""
 
     temp_dir = tempfile.mkdtemp(prefix='uvt-kvm-')
@@ -243,7 +244,7 @@ def create_ds_volume(new_volume_name, hostname, user_data_fobj, meta_data_fobj):
         create_ds_image(temp_dir, hostname, user_data_fobj, meta_data_fobj)
         with open(os.path.join(temp_dir, 'ds.img'), 'rb') as f:
             return uvtool.libvirt.create_volume_from_fobj(
-                new_volume_name, f, image_type='qcow2', pool_name=POOL_NAME)
+                new_volume_name, f, image_type='qcow2', pool_name=pool_name)
     finally:
         shutil.rmtree(temp_dir)
 
@@ -264,12 +265,12 @@ def create_new_volume(new_volume_name, size=2):
 
 
 def create_cow_volume(backing_volume_name, new_volume_name, new_volume_size,
-        conn=None):
+        conn=None, pool_name=POOL_NAME):
 
     if conn is None:
         conn = libvirt.open('qemu:///system')
 
-    pool = conn.storagePoolLookupByName(POOL_NAME)
+    pool = conn.storagePoolLookupByName(pool_name)
     try:
         backing_vol = pool.storageVolLookupByName(backing_volume_name)
     except libvirt.libvirtError:
@@ -279,17 +280,18 @@ def create_cow_volume(backing_volume_name, new_volume_name, new_volume_size,
         backing_volume_path=backing_vol.path(),
         new_volume_name=new_volume_name,
         new_volume_size=new_volume_size,
-        conn=conn
+        conn=conn,
+        pool_name=pool_name
     )
 
 def create_cow_volume_by_path(backing_volume_path, new_volume_name,
-        new_volume_size, conn=None):
+        new_volume_size, conn=None, pool_name=POOL_NAME):
     """Create a new libvirt qcow2 volume backed by an existing volume path."""
 
     if conn is None:
         conn = libvirt.open('qemu:///system')
 
-    pool = conn.storagePoolLookupByName(POOL_NAME)
+    pool = conn.storagePoolLookupByName(pool_name)
 
     new_vol = E.volume(
         E.name(new_volume_name),
@@ -407,7 +409,7 @@ def create(hostname, filters, user_data_fobj, meta_data_fobj, template_path,
            memory=512, cpu=1, disk=2, unsafe_caching=False,
            log_console_output=False, host_passthrough=False, bridge=None,
            backing_image_file=None, start=True, ssh_known_hosts=None,
-           ephemeral_disks=None):
+           ephemeral_disks=None, pool=POOL_NAME):
     if backing_image_file is None:
         base_volume_name = get_base_image(filters)
     if ephemeral_disks is None:
@@ -423,14 +425,15 @@ def create(hostname, filters, user_data_fobj, meta_data_fobj, template_path,
 
         if backing_image_file:
             main_vol = create_cow_volume_by_path(
-                backing_image_file, "%s.qcow" % hostname, disk)
+                backing_image_file, "%s.qcow" % hostname, disk, pool_name=pool)
         else:
             main_vol = create_cow_volume(
-                base_volume_name, "%s.qcow" % hostname, disk)
+                base_volume_name, "%s.qcow" % hostname, disk, pool_name=pool)
         undo_volume_creation.append(main_vol)
 
         ds_vol = create_ds_volume(
-            "%s-ds.qcow" % hostname, hostname, user_data_fobj, meta_data_fobj)
+            "%s-ds.qcow" % hostname, hostname, user_data_fobj, meta_data_fobj,
+            pool)
         undo_volume_creation.append(ds_vol)
 
         volumes = [main_vol, ds_vol]
@@ -675,6 +678,7 @@ def main_create(parser, args):
         start=not args.no_start,
         ssh_known_hosts=ssh_known_hosts,
         ephemeral_disks=args.ephemeral_disks,
+        pool=args.pool,
     )
 
 
@@ -801,6 +805,7 @@ def main(args):
     create_subparser.add_argument('--memory', default=512, type=int)
     create_subparser.add_argument('--cpu', default=1, type=int)
     create_subparser.add_argument('--disk', default=8, type=int)
+    create_subparser.add_argument('--pool', default=POOL_NAME)
     create_subparser.add_argument(
         '--ephemeral-disk', action='append', type=int, dest='ephemeral_disks',
         help='Add an empty disk of SIZE in GB', metavar='SIZE')
