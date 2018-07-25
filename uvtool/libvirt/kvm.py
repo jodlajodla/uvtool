@@ -394,24 +394,27 @@ def compose_domain_xml(name, volumes, template_path, cpu=1, memory=512,
     return etree.tostring(tree)
 
 
-def get_base_image(filters):
-    result = list(uvtool.libvirt.simplestreams.query(filters))
+def get_base_image(filters, pool_name=POOL_NAME):
+    result = list(uvtool.libvirt.simplestreams.query(filters, pool_name=pool_name))
     if not result:
         raise CLIError(
             "no images found that match filters %s." % repr(filters))
     elif len(result) != 1:
         raise CLIError(
             "multiple images found that match filters %s." % repr(filters))
-    return result[0]
+    return uvtool.libvirt.simplestreams.get_libvirt_pool_name(*result[0], pool_name=pool_name)
 
 
 def create(hostname, filters, user_data_fobj, meta_data_fobj, template_path,
            memory=512, cpu=1, disk=2, unsafe_caching=False,
            log_console_output=False, host_passthrough=False, bridge=None,
            backing_image_file=None, start=True, ssh_known_hosts=None,
-           ephemeral_disks=None, pool=POOL_NAME):
+           ephemeral_disks=None, image_pool=POOL_NAME, pool=POOL_NAME):
     if backing_image_file is None:
-        base_volume_name = get_base_image(filters)
+        base_volume_name = get_base_image(filters, pool_name=image_pool)
+        if image_pool != pool:
+            backing_image_file = uvtool.libvirt.get_volume_path_by_name(
+                base_volume_name, pool_name=image_pool)
     if ephemeral_disks is None:
         ephemeral_disks = []
     undo_volume_creation = []
@@ -678,6 +681,7 @@ def main_create(parser, args):
         start=not args.no_start,
         ssh_known_hosts=ssh_known_hosts,
         ephemeral_disks=args.ephemeral_disks,
+        image_pool=args.image_pool,
         pool=args.pool,
     )
 
@@ -805,6 +809,7 @@ def main(args):
     create_subparser.add_argument('--memory', default=512, type=int)
     create_subparser.add_argument('--cpu', default=1, type=int)
     create_subparser.add_argument('--disk', default=8, type=int)
+    create_subparser.add_argument('--image-pool', default=POOL_NAME)
     create_subparser.add_argument('--pool', default=POOL_NAME)
     create_subparser.add_argument(
         '--ephemeral-disk', action='append', type=int, dest='ephemeral_disks',

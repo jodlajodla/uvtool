@@ -47,6 +47,12 @@ def get_libvirt_pool_object(libvirt_conn, pool_name):
     return pool
 
 
+def pool_type(pool_name):
+    conn = libvirt.open('qemu:///system')
+    pool = get_libvirt_pool_object(conn, pool_name)
+    return etree.fromstring(pool.XMLDesc(0)).get('type')
+
+
 def create_volume_from_fobj(new_volume_name, fobj, image_type='raw',
         pool_name='default'):
     """Create a new libvirt volume and populate it from a file-like object."""
@@ -82,7 +88,7 @@ def _create_volume_from_fobj_with_size(new_volume_name, fobj, fobj_size,
     if image_type == 'raw':
         extra = [E.allocation(str(fobj_size)), E.capacity(str(fobj_size))]
     elif image_type == 'qcow2':
-        extra = [E.capacity('0')]
+        extra = [E.capacity('0' if pool_type(pool_name) == 'dir' else str(fobj_size))]
     else:
         raise NotImplementedError("Unknown image type %r." % image_type)
 
@@ -123,6 +129,11 @@ def volume_names_in_pool(pool_name='default'):
     pool = get_libvirt_pool_object(conn, pool_name)
     return pool.listVolumes()
 
+def get_volume_path_by_name(volume_name, pool_name='default'):
+    conn = libvirt.open('qemu:///system')
+    pool = get_libvirt_pool_object(conn, pool_name)
+    volume = pool.storageVolLookupByName(volume_name)
+    return volume.path()
 
 def delete_volume_by_name(volume_name, pool_name='default'):
     conn = libvirt.open('qemu:///system')
