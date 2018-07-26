@@ -308,7 +308,7 @@ def create_cow_volume_by_path(backing_volume_path, new_volume_name,
 
 def compose_domain_xml(name, volumes, template_path, cpu=1, memory=512,
         unsafe_caching=False, log_console_output=False, host_passthrough=False,
-        bridge=None, ssh_known_hosts=None):
+        bridge=None, ssh_known_hosts=None, disk_cache=None):
     tree = etree.parse(template_path)
     domain = tree.getroot()
     assert domain.tag == 'domain'
@@ -339,6 +339,9 @@ def compose_domain_xml(name, volumes, template_path, cpu=1, memory=512,
         if unsafe_caching:
             disk_driver = E.driver(
                 name='qemu', type=disk_format_type, cache='unsafe')
+        elif disk_cache:
+            disk_driver = E.driver(
+                name='qemu', type=disk_format_type, cache=disk_cache)
         else:
             disk_driver = E.driver(name='qemu', type=disk_format_type)
         devices.append(
@@ -409,7 +412,8 @@ def create(hostname, filters, user_data_fobj, meta_data_fobj, template_path,
            memory=512, cpu=1, disk=2, unsafe_caching=False,
            log_console_output=False, host_passthrough=False, bridge=None,
            backing_image_file=None, start=True, ssh_known_hosts=None,
-           ephemeral_disks=None, image_pool=POOL_NAME, pool=POOL_NAME):
+           ephemeral_disks=None, image_pool=POOL_NAME, pool=POOL_NAME,
+           disk_cache=None):
     if backing_image_file is None:
         base_volume_name = get_base_image(filters, pool_name=image_pool)
         if image_pool != pool:
@@ -456,6 +460,7 @@ def create(hostname, filters, user_data_fobj, meta_data_fobj, template_path,
             template_path=template_path,
             unsafe_caching=unsafe_caching,
             ssh_known_hosts=ssh_known_hosts,
+            disk_cache=disk_cache
         )
         conn = libvirt.open('qemu:///system')
         domain = conn.defineXML(xml)
@@ -683,6 +688,7 @@ def main_create(parser, args):
         ephemeral_disks=args.ephemeral_disks,
         image_pool=args.image_pool,
         pool=args.pool,
+        disk_cache=args.disk_cache,
     )
 
 
@@ -816,6 +822,7 @@ def main(args):
         help='Add an empty disk of SIZE in GB', metavar='SIZE')
     create_subparser.add_argument('--bridge')
     create_subparser.add_argument('--unsafe-caching', action='store_true')
+    create_subparser.add_argument('--disk-cache')
     create_subparser.add_argument(
         '--user-data', type=argparse.FileType('rb'))
     create_subparser.add_argument(
