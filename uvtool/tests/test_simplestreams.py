@@ -40,10 +40,13 @@ ENCODED_FAKE_VOLUME_PRODUCT_NAME_1 = simplestreams._encode_libvirt_pool_name(
 
 @unittest.skipIf(ON_PRECISE, 'mock version is too old')
 @mock.patch('uvtool.libvirt.simplestreams.uvtool.libvirt')
-@mock.patch('uvtool.libvirt.simplestreams.pool_metadata', new={})
+@mock.patch('uvtool.libvirt.simplestreams.pool_metadata', new=simplestreams.Metadata())
 @mock.patch('uvtool.libvirt.simplestreams.libvirt')
 class TestSimpleStreams(unittest.TestCase):
     def testSync(self, libvirt, uvtool_libvirt):
+        # If you're changing any of ENCODED_FAKE_VOLUME_PRODUCT_NAME make sure
+        # to change pool_type return value appropriately
+        uvtool_libvirt.pool_type.return_value = 'dir'
         uvtool_libvirt.have_volume_by_name.return_value = False
         uvtool_libvirt.get_all_domain_volume_names.return_value = []
         uvtool_libvirt.volume_names_in_pool.return_value = [
@@ -85,10 +88,14 @@ class TestSimpleStreams(unittest.TestCase):
                 'get_libvirt_pool_object',
                 'have_volume_by_name',
                 'volume_names_in_pool',
+                'pool_type',
             ])
 
     def _testResync(self, libvirt, uvtool_libvirt, old_volume_delete_expected,
             volumes_in_use=None):
+        # If you're changing any of ENCODED_FAKE_VOLUME_PRODUCT_NAME make sure
+        # to change pool_type return value appropriately
+        uvtool_libvirt.pool_type.return_value = 'dir'
         uvtool_libvirt.have_volume_by_name.side_effect = (
             lambda name, **kwargs: name == ENCODED_FAKE_VOLUME_PRODUCT_NAME_0)
         if volumes_in_use:
@@ -159,6 +166,7 @@ class TestSimpleStreams(unittest.TestCase):
                 'have_volume_by_name',
                 'volume_names_in_pool',
                 #'get_libvirt_pool_object().storageVolLookupByName',
+                'pool_type',
             ])
 
     def testResync(self, libvirt, uvtool_libvirt):

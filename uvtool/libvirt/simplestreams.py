@@ -128,10 +128,10 @@ PLAIN_PREFIX = 'x-uvt-plain-'
 
 def _encode_libvirt_pool_name(product_name, version_name, encoding_type='b64'):
     if encoding_type == 'plain':
-        return PLAIN_PREFIX + product_name + '__' + version_name
-    return BASE64_PREFIX + base64.b64encode(
+        return str(PLAIN_PREFIX + product_name + '__' + version_name)
+    return str(BASE64_PREFIX + base64.b64encode(
         (' '.join([product_name, version_name])).encode(), b'-_'
-    )
+    ))
 
 
 def _decode_libvirt_pool_name(encoded_pool_name):
