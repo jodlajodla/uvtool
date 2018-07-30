@@ -249,8 +249,11 @@ def get_domain_macs(domain_name, conn=None):
     domain = conn.lookupByName(domain_name)
     xml = etree.fromstring(domain.XMLDesc(0))
     for mac in xml.xpath(
-            "/domain/devices/interface[@type='network']/mac[@address]"):
-        yield mac.get('address')
+            "/domain/devices/interface[@type='network' or @type='bridge']/mac[@address]"):
+        yield {
+            'type': mac.xpath('..')[0].get('type'),
+            'address': mac.get('address')
+        }
 
 
 def dnsmasq_lease_file_mac_to_ip(lowercase_mac):
