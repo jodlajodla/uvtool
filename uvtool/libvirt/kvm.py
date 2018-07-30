@@ -781,17 +781,18 @@ def main_wait(parser, args):
                 % repr(args.name)
         )
     mac = macs[0]
-    if not uvtool.wait.wait_for_libvirt_dnsmasq_lease(
-            mac, args.timeout):
-        raise CLIError(
-            "timed out waiting for dnsmasq lease for %s." % mac)
-    host_ip = uvtool.libvirt.mac_to_ip(mac)
-    if not uvtool.wait.wait_for_open_ssh_port(
-            host_ip, args.interval, args.timeout):
-        raise CLIError(
-            "timed out waiting for ssh to open on %s." % host_ip)
-    if not args.without_ssh:
-        main_wait_remote(parser, args)
+    if mac['type'] == 'network':
+        if not uvtool.wait.wait_for_libvirt_dnsmasq_lease(
+                mac['address'], args.timeout):
+            raise CLIError(
+                "timed out waiting for dnsmasq lease for %s." % mac['address'])
+        host_ip = uvtool.libvirt.mac_to_ip(mac['address'])
+        if not uvtool.wait.wait_for_open_ssh_port(
+                host_ip, args.interval, args.timeout):
+            raise CLIError(
+                "timed out waiting for ssh to open on %s." % host_ip)
+        if not args.without_ssh:
+            main_wait_remote(parser, args)
 
 
 class DeveloperOptionAction(argparse.Action):
